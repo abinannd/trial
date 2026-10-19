@@ -1,19 +1,58 @@
-import type { CSSProperties } from 'react'
-import { ArrowDownRight, ArrowUpRight, AudioLines, CircleHelp, Command, Github, Sparkles } from 'lucide-react'
+import { useState, type CSSProperties } from 'react'
+import { ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, AudioLines, CircleHelp, Command, Github, Sparkles } from 'lucide-react'
 import { GlyphPortal } from './components/ui/glyph-portal'
 
 const glyphs = ['✳', '⌘', '⟡', '⌬', '⧖', '◈', '⎔', '⌁', '✺', '⟢', '⊹', '⏣']
 
-export default function App() {
+function IntroPage({ onEnter }: { onEnter: () => void }) {
+  return (
+    <main className="intro-shell">
+      <div className="intro-orb intro-orb-one" />
+      <div className="intro-orb intro-orb-two" />
+      <header className="intro-topbar">
+        <a className="brand" href="#intro" aria-label="Intro home">
+          <span className="brand-mark"><Sparkles size={17} /></span>
+          <span>STUDIO<span className="brand-light"> / EXPERIMENTS</span></span>
+        </a>
+        <span className="intro-index">INTERFACE STUDY <i /> 001</span>
+      </header>
+
+      <section className="intro-content" id="intro">
+        <div className="intro-kicker"><span className="eyebrow-line" /> A SMALL COLLECTION OF DIGITAL WORLDS</div>
+        <h1 className="intro-heading" aria-label="Heading animation test">
+          <span className="heading-line heading-line-one">Heading</span>
+          <span className="heading-line heading-line-two">Animation <em>Test.</em></span>
+        </h1>
+        <p className="intro-subtitle">A first step into motion, atmosphere, and interactive experiments.</p>
+
+        <button className="project-panel" type="button" onClick={onEnter} aria-label="Open Glyph Portal">
+          <span className="panel-symbol"><Sparkles size={23} strokeWidth={1.5} /></span>
+          <span className="panel-copy">
+            <span className="panel-overline">EXPERIMENT 001</span>
+            <span className="panel-title">Glyph Portal</span>
+            <span className="panel-description">An interactive field of symbols, motion & light.</span>
+          </span>
+          <span className="panel-arrow"><ArrowRight size={21} strokeWidth={1.7} /></span>
+          <span className="panel-edge" />
+        </button>
+
+        <div className="intro-bottom-note"><span className="note-pulse" /> SELECT A PROJECT <span className="note-divider" /> ONE EXPERIMENT AVAILABLE</div>
+      </section>
+      <footer className="intro-footer">
+        <span>DESIGNED TO BE EXPLORED</span>
+        <span>SCROLL LESS. DISCOVER MORE.</span>
+      </footer>
+    </main>
+  )
+}
+
+function GlyphPortalPage({ onBack }: { onBack: () => void }) {
   return (
     <main className="page-shell">
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="Glyph Portal home">
-          <span className="brand-mark"><Sparkles size={17} /></span>
-          <span>GLYPH<span className="brand-light">PORTAL</span></span>
-        </a>
+        <button className="back-link" type="button" onClick={onBack}><ArrowLeft size={15} /> <span>ALL EXPERIMENTS</span></button>
         <div className="topbar-right">
           <span className="status-dot" />
           <span className="status-label">EXPERIMENT 001</span>
@@ -55,4 +94,11 @@ export default function App() {
       </footer>
     </main>
   )
+}
+
+export default function App() {
+  const [showPortal, setShowPortal] = useState(false)
+  return showPortal
+    ? <GlyphPortalPage onBack={() => setShowPortal(false)} />
+    : <IntroPage onEnter={() => setShowPortal(true)} />
 }
