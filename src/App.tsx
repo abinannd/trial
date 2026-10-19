@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { ArrowDownRight, ArrowUpRight, AudioLines, CircleHelp, Command, Github, Sparkles } from 'lucide-react'
 import { GlyphPortal } from './components/ui/glyph-portal'
 
@@ -43,7 +44,7 @@ export default function App() {
           <p>Symbols drift around the threshold. Each one is a tiny mark in a larger, living system.</p>
         </div>
         <div className="glyph-grid">
-          {glyphs.map((glyph, i) => <div className="glyph-tile" key={glyph} style={{ '--delay': `${i * -0.37}s` } as React.CSSProperties}><span>{glyph}</span><small>{String(i + 1).padStart(2, '0')} / GLYPH</small></div>)}
+          {glyphs.map((glyph, i) => <div className="glyph-tile" key={glyph} style={{ '--delay': `${i * -0.37}s` } as CSSProperties}><span>{glyph}</span><small>{String(i + 1).padStart(2, '0')} / GLYPH</small></div>)}
         </div>
       </section>
 
