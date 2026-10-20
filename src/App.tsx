@@ -1,10 +1,11 @@
 import { useState, type CSSProperties } from 'react'
 import { ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, AudioLines, CircleHelp, Command, Github, Sparkles } from 'lucide-react'
 import { GlyphPortal } from './components/ui/glyph-portal'
+import { CursorTrackingExperiment } from './components/ui/cursor-tracking-experiment'
 
 const glyphs = ['✳', '⌘', '⟡', '⌬', '⧖', '◈', '⎔', '⌁', '✺', '⟢', '⊹', '⏣']
 
-function IntroPage({ onEnter }: { onEnter: () => void }) {
+function IntroPage({ onEnter, onEnterCursor }: { onEnter: () => void; onEnterCursor: () => void }) {
   return (
     <main className="intro-shell">
       <div className="intro-orb intro-orb-one" />
@@ -31,6 +32,17 @@ function IntroPage({ onEnter }: { onEnter: () => void }) {
             <span className="panel-overline">EXPERIMENT 001</span>
             <span className="panel-title">Glyph Portal</span>
             <span className="panel-description">An interactive field of symbols, motion & light.</span>
+          </span>
+          <span className="panel-arrow"><ArrowRight size={21} strokeWidth={1.7} /></span>
+          <span className="panel-edge" />
+        </button>
+
+        <button className="project-panel experiment-two-panel" type="button" onClick={onEnterCursor} aria-label="Open cursor tracking experiment">
+          <span className="panel-symbol experiment-two-symbol"><span aria-hidden="true" style={{ fontSize: 22, lineHeight: 1 }}>◉</span></span>
+          <span className="panel-copy">
+            <span className="panel-overline">EXPERIMENT 002</span>
+            <span className="panel-title">Cursor Character</span>
+            <span className="panel-description">A character that follows your cursor with its eyes.</span>
           </span>
           <span className="panel-arrow"><ArrowRight size={21} strokeWidth={1.7} /></span>
           <span className="panel-edge" />
@@ -98,7 +110,9 @@ function GlyphPortalPage({ onBack }: { onBack: () => void }) {
 
 export default function App() {
   const [showPortal, setShowPortal] = useState(false)
+  const [showCursorExperiment, setShowCursorExperiment] = useState(false)
+  if (showCursorExperiment) return <CursorTrackingExperiment onBack={() => setShowCursorExperiment(false)} />
   return showPortal
     ? <GlyphPortalPage onBack={() => setShowPortal(false)} />
-    : <IntroPage onEnter={() => setShowPortal(true)} />
+    : <IntroPage onEnter={() => setShowPortal(true)} onEnterCursor={() => setShowCursorExperiment(true)} />
 }
