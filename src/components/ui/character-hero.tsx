@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { ArrowLeft, ArrowUpRight, Copy } from 'lucide-react'
 import './character-hero.css'
 
@@ -17,7 +17,7 @@ export function CharacterHeroExperiment({ onBack }: { onBack: () => void }) {
       window.setTimeout(() => setCopied(false), 1500)
     } catch { window.location.href = 'mailto:hello@mainframe.co' }
   }
-  return <main className="character-hero" style={{ '--pointer-x': pointer.x + '%', '--pointer-y': pointer.y + '%' } as React.CSSProperties}>
+  return <main className="character-hero" style={{ '--pointer-x': pointer.x + '%', '--pointer-y': pointer.y + '%' } as CSSProperties}>
     <div className="character-grain" />
     <header className="character-nav">
       <button className="character-back" onClick={onBack}><ArrowLeft size={15} /> ALL EXPERIMENTS</button>
