@@ -3,10 +3,11 @@ import { ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, AudioLines, Circle
 import { GlyphPortal } from './components/ui/glyph-portal'
 import { CursorTrackingExperiment } from './components/ui/cursor-tracking-experiment'
 import { MainframeExperiment } from './components/ui/mainframe-experiment'
+import { CharacterHeroExperiment } from './components/ui/character-hero'
 
 const glyphs = ['✳', '⌘', '⟡', '⌬', '⧖', '◈', '⎔', '⌁', '✺', '⟢', '⊹', '⏣']
 
-function IntroPage({ onEnter, onEnterCursor, onEnterMainframe }: { onEnter: () => void; onEnterCursor: () => void; onEnterMainframe: () => void }) {
+function IntroPage({ onEnter, onEnterCursor, onEnterMainframe, onEnterCharacter }: { onEnter: () => void; onEnterCursor: () => void; onEnterMainframe: () => void; onEnterCharacter: () => void }) {
   return (
     <main className="intro-shell">
       <div className="intro-orb intro-orb-one" />
@@ -54,7 +55,12 @@ function IntroPage({ onEnter, onEnterCursor, onEnterMainframe }: { onEnter: () =
           <span className="panel-copy"><span className="panel-overline">EXPERIMENT 003</span><span className="panel-title">Mainframe</span><span className="panel-description">A video-scrubbed creative agency landing page.</span></span>
           <span className="panel-arrow"><ArrowRight size={21} strokeWidth={1.7} /></span><span className="panel-edge" />
         </button>
-        <div className="intro-bottom-note"><span className="note-pulse" /> SELECT A PROJECT <span className="note-divider" /> THREE EXPERIMENTS AVAILABLE</div>
+        <button className="project-panel experiment-four-panel" type="button" onClick={onEnterCharacter} aria-label="Open character hero experiment">
+          <span className="panel-symbol experiment-four-symbol"><span aria-hidden="true" style={{ fontSize: 25, lineHeight: 1 }}>☺</span></span>
+          <span className="panel-copy"><span className="panel-overline">EXPERIMENT 004</span><span className="panel-title">Big Ideas, Little Guy</span><span className="panel-description">A character-led orange hero with playful motion.</span></span>
+          <span className="panel-arrow"><ArrowRight size={21} strokeWidth={1.7} /></span><span className="panel-edge" />
+        </button>
+        <div className="intro-bottom-note"><span className="note-pulse" /> SELECT A PROJECT <span className="note-divider" /> FOUR EXPERIMENTS AVAILABLE</div>
       </section>
       <footer className="intro-footer">
         <span>DESIGNED TO BE EXPLORED</span>
@@ -118,9 +124,11 @@ export default function App() {
   const [showPortal, setShowPortal] = useState(false)
   const [showCursorExperiment, setShowCursorExperiment] = useState(false)
   const [showMainframe, setShowMainframe] = useState(false)
+  const [showCharacter, setShowCharacter] = useState(false)
+  if (showCharacter) return <CharacterHeroExperiment onBack={() => setShowCharacter(false)} />
   if (showMainframe) return <MainframeExperiment onBack={() => setShowMainframe(false)} />
   if (showCursorExperiment) return <CursorTrackingExperiment onBack={() => setShowCursorExperiment(false)} />
   return showPortal
     ? <GlyphPortalPage onBack={() => setShowPortal(false)} />
-    : <IntroPage onEnter={() => setShowPortal(true)} onEnterCursor={() => setShowCursorExperiment(true)} onEnterMainframe={() => setShowMainframe(true)} />
+    : <IntroPage onEnter={() => setShowPortal(true)} onEnterCursor={() => setShowCursorExperiment(true)} onEnterMainframe={() => setShowMainframe(true)} onEnterCharacter={() => setShowCharacter(true)} />
 }
