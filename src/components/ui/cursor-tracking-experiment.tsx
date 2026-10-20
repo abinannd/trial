@@ -1,3 +1,4 @@
+import './cursor-tracking-experiment.css'
 import { useState, type PointerEvent } from 'react'
 import { ArrowLeft, ArrowUpRight, Github, MoveUpRight } from 'lucide-react'
 
