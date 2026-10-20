@@ -87,3 +87,6 @@ button,a{-webkit-tap-highlight-color:transparent}
 @media(max-width:800px){.intro-topbar,.intro-footer,.intro-content{width:calc(100% - 36px)}.intro-content{padding:64px 0 72px}.intro-heading{font-size:clamp(58px,11.5vw,88px)}}
 @media(max-width:460px){.intro-topbar{height:72px}.intro-index{font-size:7px;gap:7px}.intro-heading{font-size:clamp(52px,12vw,68px);margin-top:24px}.intro-subtitle{font-size:13px}.project-panel{gap:13px;min-height:104px;margin-top:34px;padding:17px 15px;border-radius:16px}.panel-symbol{flex-basis:42px;width:42px;height:42px}.panel-title{font-size:17px}.panel-description{font-size:10px}.panel-arrow{flex-basis:34px;width:34px;height:34px}.panel-edge{right:62px}.intro-bottom-note{font-size:7px;gap:7px}.intro-footer{font-size:7px}}
 @media(prefers-reduced-motion:reduce){.intro-orb-one,.intro-orb-two,.heading-line,.intro-kicker,.intro-subtitle,.project-panel,.intro-bottom-note{animation:none!important;opacity:1!important;filter:none!important;transform:none!important}}
+
+/* Experiment 002: keep the second project directly beneath Glyph Portal. */
+.experiment-two-panel{margin-top:14px;animation-delay:.58s}
