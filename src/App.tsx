@@ -48,7 +48,7 @@ function IntroPage({ onEnter, onEnterCursor }: { onEnter: () => void; onEnterCur
           <span className="panel-edge" />
         </button>
 
-        <div className="intro-bottom-note"><span className="note-pulse" /> SELECT A PROJECT <span className="note-divider" /> ONE EXPERIMENT AVAILABLE</div>
+        <div className="intro-bottom-note"><span className="note-pulse" /> SELECT A PROJECT <span className="note-divider" /> TWO EXPERIMENTS AVAILABLE</div>
       </section>
       <footer className="intro-footer">
         <span>DESIGNED TO BE EXPLORED</span>
