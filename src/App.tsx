@@ -2,10 +2,11 @@ import { useState, type CSSProperties } from 'react'
 import { ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, AudioLines, CircleHelp, Command, Github, Sparkles } from 'lucide-react'
 import { GlyphPortal } from './components/ui/glyph-portal'
 import { CursorTrackingExperiment } from './components/ui/cursor-tracking-experiment'
+import { MainframeExperiment } from './components/ui/mainframe-experiment'
 
 const glyphs = ['✳', '⌘', '⟡', '⌬', '⧖', '◈', '⎔', '⌁', '✺', '⟢', '⊹', '⏣']
 
-function IntroPage({ onEnter, onEnterCursor }: { onEnter: () => void; onEnterCursor: () => void }) {
+function IntroPage({ onEnter, onEnterCursor, onEnterMainframe }: { onEnter: () => void; onEnterCursor: () => void; onEnterMainframe: () => void }) {
   return (
     <main className="intro-shell">
       <div className="intro-orb intro-orb-one" />
@@ -48,7 +49,12 @@ function IntroPage({ onEnter, onEnterCursor }: { onEnter: () => void; onEnterCur
           <span className="panel-edge" />
         </button>
 
-        <div className="intro-bottom-note"><span className="note-pulse" /> SELECT A PROJECT <span className="note-divider" /> TWO EXPERIMENTS AVAILABLE</div>
+        <button className="project-panel experiment-three-panel" type="button" onClick={onEnterMainframe} aria-label="Open Mainframe hero experiment">
+          <span className="panel-symbol"><span aria-hidden="true" style={{ fontSize: 25, lineHeight: 1 }}>✳</span></span>
+          <span className="panel-copy"><span className="panel-overline">EXPERIMENT 003</span><span className="panel-title">Mainframe</span><span className="panel-description">A video-scrubbed creative agency landing page.</span></span>
+          <span className="panel-arrow"><ArrowRight size={21} strokeWidth={1.7} /></span><span className="panel-edge" />
+        </button>
+        <div className="intro-bottom-note"><span className="note-pulse" /> SELECT A PROJECT <span className="note-divider" /> THREE EXPERIMENTS AVAILABLE</div>
       </section>
       <footer className="intro-footer">
         <span>DESIGNED TO BE EXPLORED</span>
@@ -111,8 +117,10 @@ function GlyphPortalPage({ onBack }: { onBack: () => void }) {
 export default function App() {
   const [showPortal, setShowPortal] = useState(false)
   const [showCursorExperiment, setShowCursorExperiment] = useState(false)
+  const [showMainframe, setShowMainframe] = useState(false)
+  if (showMainframe) return <MainframeExperiment onBack={() => setShowMainframe(false)} />
   if (showCursorExperiment) return <CursorTrackingExperiment onBack={() => setShowCursorExperiment(false)} />
   return showPortal
     ? <GlyphPortalPage onBack={() => setShowPortal(false)} />
-    : <IntroPage onEnter={() => setShowPortal(true)} onEnterCursor={() => setShowCursorExperiment(true)} />
+    : <IntroPage onEnter={() => setShowPortal(true)} onEnterCursor={() => setShowCursorExperiment(true)} onEnterMainframe={() => setShowMainframe(true)} />
 }
