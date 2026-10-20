@@ -87,7 +87,7 @@ export function MainframeExperiment({ onBack }: { onBack: () => void }) {
       <div className="mainframe-video-shade" />
       <header className="mainframe-nav">
         <button className="mainframe-back" onClick={onBack} aria-label="Back to experiments"><ArrowLeft size={15} /><span>EXPERIMENTS</span></button>
-        <a className="mainframe-logo" href="#mainframe-home" aria-label="Mainframe home"><span>Mainframe<sup>(R)</sup></span><b>✳︎</b></a>
+        <a className="mainframe-logo" href="#mainframe-home" aria-label="Mainframe home"><span>Mainframe<sup>®</sup></span><b>✳︎</b></a>
         <nav className="mainframe-desktop-links" aria-label="Main navigation">
           {links.map((link, i) => <span key={link}>{i > 0 && <span className="mainframe-comma">, </span>}<a href={link === 'Labs' ? '#mainframe-home' : '#mainframe-contact'}>{link}</a></span>)}
         </nav>
