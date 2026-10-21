@@ -59,7 +59,7 @@ export function CharacterHeroExperiment({ onBack }: { onBack: () => void }) {
   }
   const closeMenu = () => setMenuOpen(false)
   return <main className="character-hero">
-    <video ref={videoRef} className="mainframe-background-video" muted playsInline preload="auto" aria-hidden="true"><source src="https://abinannd.github.io/trial/mainframe-character.mp4" type="video/mp4" /></video>
+    <video ref={videoRef} className="mainframe-background-video" muted playsInline preload="auto" aria-hidden="true"><source src={`${import.meta.env.BASE_URL}mainframe-character.mp4`} type="video/mp4" /></video>
     <div className="mainframe-video-shade" aria-hidden="true" />
     <header className="mainframe-nav">
       <button className="character-back mainframe-back" onClick={onBack} aria-label="Back to all experiments">← <span>ALL EXPERIMENTS</span></button>
