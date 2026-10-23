@@ -1,0 +1,6 @@
+{
+  "name": "Vexor Payments - Interface Experiments",
+  "description": "Interactive experiments showcase featuring Vexor global payments signup call-to-action with swirling coral smoke, responsive scaling, entrance animations, and minimal footer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
