@@ -15,6 +15,7 @@ import { CursorTrackingExperiment } from './components/ui/cursor-tracking-experi
 import { MainframeExperiment } from './components/ui/mainframe-experiment'
 import { CharacterHeroExperiment } from './components/ui/character-hero'
 import { VexorExperiment } from './components/ui/vexor-experiment'
+import { DoodleChaseExperiment } from './components/ui/doodle-chase-experiment'
 
 const glyphs = ['✳', '⌘', '⟡', '⌬', '⧖', '◈', '⎔', '⌁', '✺', '⟢', '⊹', '⏣']
 
@@ -24,12 +25,14 @@ function IntroPage({
   onEnterMainframe,
   onEnterCharacter,
   onEnterVexor,
+  onEnterDoodle,
 }: {
   onEnter: () => void
   onEnterCursor: () => void
   onEnterMainframe: () => void
   onEnterCharacter: () => void
   onEnterVexor: () => void
+  onEnterDoodle: () => void
 }) {
   return (
     <main className="intro-shell">
@@ -176,8 +179,15 @@ function IntroPage({
           <span className="panel-edge" />
         </button>
 
+        {/* Experiment 006: Doodle Chase */}
+        <button className="project-panel experiment-six-panel" type="button" onClick={onEnterDoodle} aria-label="Open Doodle Chase experiment">
+          <span className="panel-symbol"><span aria-hidden="true" style={{ fontSize: 25, lineHeight: 1 }}>✎</span></span>
+          <span className="panel-copy"><span className="panel-overline" style={{ color: '#8eb7ff' }}>EXPERIMENT 006</span><span className="panel-title">Doodle Chase</span><span className="panel-description">A crayon character that reacts to your pointer.</span></span>
+          <span className="panel-arrow"><ArrowRight size={21} strokeWidth={1.7} /></span><span className="panel-edge" />
+        </button>
+
         <div className="intro-bottom-note">
-          <span className="note-pulse" /> SELECT A PROJECT <span className="note-divider" /> FIVE EXPERIMENTS AVAILABLE
+          <span className="note-pulse" /> SELECT A PROJECT <span className="note-divider" /> SIX EXPERIMENTS AVAILABLE
         </div>
       </section>
 
@@ -303,12 +313,15 @@ export default function App() {
   const [showMainframe, setShowMainframe] = useState(false)
   const [showCharacter, setShowCharacter] = useState(false)
   const [showVexor, setShowVexor] = useState(false)
+  const [showDoodle, setShowDoodle] = useState(false)
 
   // Support direct deep linking via URL hash
   useState(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase()
-      if (hash === '#vexor' || hash === '#experiment-5' || hash === '#005') {
+      if (hash === '#doodle' || hash === '#experiment-6' || hash === '#006') {
+        setShowDoodle(true)
+      } else if (hash === '#vexor' || hash === '#experiment-5' || hash === '#005') {
         setShowVexor(true)
       } else if (hash === '#mainframe' || hash === '#003') {
         setShowMainframe(true)
@@ -323,6 +336,7 @@ export default function App() {
   })
 
   const resetAll = () => {
+    setShowDoodle(false)
     setShowVexor(false)
     setShowCharacter(false)
     setShowMainframe(false)
@@ -333,6 +347,7 @@ export default function App() {
     }
   }
 
+  if (showDoodle) return <DoodleChaseExperiment onBack={resetAll} />
   if (showVexor) return <VexorExperiment onBack={resetAll} />
   if (showCharacter) return <CharacterHeroExperiment onBack={resetAll} />
   if (showMainframe) return <MainframeExperiment onBack={resetAll} />
@@ -345,6 +360,10 @@ export default function App() {
       onEnterCursor={() => setShowCursorExperiment(true)}
       onEnterMainframe={() => setShowMainframe(true)}
       onEnterCharacter={() => setShowCharacter(true)}
+      onEnterDoodle={() => {
+        window.location.hash = 'doodle'
+        setShowDoodle(true)
+      }}
       onEnterVexor={() => {
         window.location.hash = 'vexor'
         setShowVexor(true)
