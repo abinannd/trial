@@ -1,0 +1,359 @@
+# ghost buddy — build prompt
+<!--⁠‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌⁠ uberdesigner prompt format v1 · ghost-buddy · v1.0.0 -->
+
+## Goal
+You're building a single full-window UI piece: a small glowing **glass ghost** drawn on a canvas in the middle of a
+near-black page, which reacts to the cursor. It's a rounded-dome ghost with a four-scallop wavy hem, filled with a deep
+violet glass gradient lit from inside (blue top left, magenta bottom right, a teal glint), a soft cyan / magenta /
+violet chromatic aura behind it, RGB-split edge lines, faint scanlines, an inset glowing rim, a white specular arc on
+the dome and two glowing white eyes. Behind it: a violet glow that follows the ghost, a barely visible pattern of
+interlocking circles and 26 drifting dust motes. **Every expression is one eye shape that morphs smoothly into the
+next.** The eyes track the cursor while the ghost leans and drifts toward it and its hem trails behind; hovering it
+melts the eyes into happy arches (^ ^) and turns up the glow; clicking it squashes it like jelly with > < eyes,
+sparkles and a ripple ring; clicking elsewhere makes it flinch (a small ripple there) and look; a fast cursor flick
+startles it (round dot eyes, a hop and an RGB glitch); after 5 seconds without moving it falls asleep with sleepy eyes
+and a floating "z"; with the cursor out of the window it looks around on its own. On phones the finger takes the
+cursor's place (tap, hold, drag, swipe). The original is a single-file Canvas 2D concept; this build matches it frame
+for frame at 60 fps and adds the touch mapping, fixes for the wake-up hop, slow frames and a zero-size start, and
+reduced motion. Match everything below exactly:
+look, motion and timing. There are no images and no fonts to load.
+
+## Stack and setup
+- Vite + React 19 + TypeScript (strict). Plain CSS: a tokens file, a global file and one CSS Module. **No other
+  libraries**: the ghost is plain Canvas 2D in typed modules, driven by one `requestAnimationFrame` loop.
+- Create and run:
+  ```bash
+  npm create vite@latest ghost-buddy -- --template react-ts --no-interactive
+  cd ghost-buddy
+  npm install
+  npm run dev
+  ```
+- Folder layout:
+  ```
+  index.html                      title, description, theme colour, viewport-fit=cover, empty favicon
+  src/main.tsx                    renders <App /> in <StrictMode>; imports tokens.css then global.css
+  src/App.tsx                     export function App() { return <GhostStage />; }
+  src/components/GhostStage.tsx   the full-window canvas; starts the ghost in an effect (+ GhostStage.module.css)
+  src/styles/tokens.css           the page colour
+  src/styles/global.css           reset and page base
+  src/ghost/math.ts               helpers                                  (given below in full)
+  src/ghost/config.ts             every colour and behaviour number         (given below in full)
+  src/ghost/state.ts              types and the starting state              (given below in full)
+  src/ghost/outline.ts            the body outline and how it bends         (given below in full)
+  src/ghost/eyes.ts               the six expressions and the morph         (given below in full)
+  src/ghost/update.ts             the simulation step                       (given below in full)
+  src/ghost/draw.ts               the renderer                              (given below in full)
+  src/ghost/input.ts              mouse and touch                           (given below in full)
+  src/ghost/engine.ts             sizing, loop, start / stop                (given below in full)
+  ```
+- Delete the scaffold's leftovers that aren't in this layout (`App.css`, `index.css`, `src/assets/`, the sample
+  icons in `public/`; an empty `public/` can go too). Keep the scaffold's `README.md`, lint config and `lint` script.
+- TypeScript: make sure `"strict": true` is set in `tsconfig.app.json` (newer scaffolds leave it out). Keep the
+  scaffold's other settings (`verbatimModuleSyntax`, `erasableSyntaxOnly`, `noUnusedLocals`, `noUnusedParameters`):
+  the given modules already compile under them (type-only imports use `import type` / inline `type`, no enums, no
+  constructor parameter properties). Don't add `any`.
+- Copy the nine `src/ghost/` modules **exactly as given**: they are the design. Every number in them was matched
+  against the original pixel for pixel; don't round, reorder or "tidy" the arithmetic.
+- `App` is a named export; `main.tsx` imports it as `import { App } from "./App"`.
+- Keep `<StrictMode>`: in development it mounts the stage twice, and `startGhost` returns a cleanup that cancels the
+  loop and removes every listener, so exactly one ghost runs.
+
+## Design tokens
+- **Page colour** `--page: #06060c` in `src/styles/tokens.css` on `:root` (comment: the ghost draws with the colours
+  in `src/ghost/config.ts`; `--page` there and here are the same colour, so the page never flashes another colour
+  before the first frame). `index.html`'s `theme-color` is the same `#06060c`.
+- **Every canvas colour** is in `COLORS` in `config.ts` (given below): "r,g,b" strings that get their alpha where
+  they're drawn, or hex. Main ones: page `#06060c`; body gradient `#3a2c86` → `#1d1446` → `#3a1650`; aura cyan
+  `rgb(40,190,255)`, magenta `rgb(230,60,220)`, violet `rgb(110,70,255)`; inner light magenta `rgb(220,60,190)`,
+  blue `rgb(90,110,255)`, teal `rgb(60,220,230)`; eyes `#f4f4ff` with a `rgb(210,215,255)` glow.
+- **Scale.** Everything is sized in **U = 40% of the window's shorter side** (`min(W, H) × 0.4`, in CSS px): at
+  1440 × 900 U = 360, at 1080 × 1080 U = 432, at 390 × 844 U = 156. The body is about 0.86 U wide and 0.94 U tall,
+  centred on the window (`CX = W / 2`, `CY = H × 0.5`). Speeds and sizes written "at U 340" are multiplied by U / 340.
+  The canvas is drawn at `devicePixelRatio`, capped at 2.
+- **Type:** none to load. The floating "z" is `600` weight `system-ui, sans-serif`, drawn on the canvas.
+
+## Assets
+None. There are no images, videos or font files: the ghost, its background and its sparkles are drawn in code.
+
+## Layout — section by section
+### 1. Stage (the whole window)
+- **Desktop:** `GhostStage` renders `<main className={styles.stage}>` with a visually hidden
+  `<h1 className={styles.title}>Ghost Buddy</h1>` and
+  `<canvas ref={canvasRef} className={styles.canvas} role="img" aria-label="A small glowing glass ghost that follows your cursor, smiles when you hover it and squishes when you click it." />`.
+  An effect (empty dependency list) calls `startGhost(canvasRef.current)` when the canvas exists and returns its
+  cleanup.
+- `GhostStage.module.css`: `.stage { position: fixed; inset: 0; }`; `.canvas { position: absolute; inset: 0;
+  display: block; width: 100%; height: 100%; touch-action: none; }`; `.title { position: absolute; width: 1px;
+  height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }`. The canvas measures its own box
+  (`getBoundingClientRect`), so on phones it's the visible viewport, toolbars excluded.
+- `global.css`: `*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }`;
+  `html, body, #root { height: 100%; }`; `body { background: var(--page); overflow: hidden; overscroll-behavior:
+  none; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none;
+  user-select: none; }`.
+- `index.html`: `<html lang="en">`; viewport `width=device-width, initial-scale=1.0, viewport-fit=cover`;
+  `<meta name="theme-color" content="#06060c">`; title "Ghost Buddy — a cursor-reactive glass ghost"; meta
+  description "A small glowing glass ghost that follows your cursor, smiles when you hover it, squishes when you click
+  it and falls asleep when you stop."; `<link rel="icon" href="data:,">` (no favicon 404).
+- **Mobile:** the same full-window canvas; the ghost scales with U (156 px on a 390 × 844 phone). `touch-action:
+  none` keeps drags and double taps on the ghost instead of scrolling or zooming the page.
+- **Start state (t = 0):** the ghost centred, open pill eyes looking straight ahead, no cursor yet, so it looks
+  around on its own (wander) until the first pointer move. The first blink comes at 2 s.
+
+## Motion
+The code below is the source of truth; this is what it does. Times in seconds, "rate r" means an exponential ease
+`x += (target − x)(1 − e^(−r·dt))`.
+
+| Behaviour | Trigger | What moves | Values |
+|---|---|---|---|
+| Loop | every animation frame | everything | `dt = clamp((now − last) / 1000, 0.001, 0.033)`, then `update`, then `draw` |
+| Follow | cursor in the window | body drifts toward the cursor, bobs | target = centre + (clamp(dx·0.06, ±0.16U), clamp(dy·0.04, ±0.1U)) + bob sin(1.5t)·0.035U; spring k 28, damping 7.5 |
+| Lean | always | the whole ghost tilts | toward clamp(vx/U·0.12, ±0.16) + clamp(dx/W·0.12, ±0.06) rad; spring k 60, damping 9 |
+| Trail | moving | the lower body and hem lag behind | offset −vx/U·0.22 (±0.22), −vy/U·0.12 (±0.1), rate 6; weighted by smoothstep(−0.15, 0.5, y)² |
+| Hem wave | always | four scallops travel along the hem | phase speed 2.4 + abs(vx)/U·3 rad/s; lobes s^0.7, notches −0.35·s^1.6, amplitude 0.065 |
+| Gaze | always | both eyes slide toward the target | spring k 150, damping 17 toward the unit direction × min(1, distance / 1.2U) (vertical × 0.85); eye offset gx·0.075U, gy·0.06U |
+| Look around | no cursor (before the first move, after it leaves the window, on window blur) | target circles the window | (CX + cos(0.4t)·0.3W, CY + sin(0.55t)·0.2H) |
+| Hover | cursor inside the body's outline | eyes → ^ ^, body +4%, all glows up | happy rate 8 in / 5 out; glow rate 4; back glow α +0.12, pattern 3.5 → 5.5%, aura α +0.15 / +0.2, inner light α +0.2 |
+| Click on it | pointer down while hovering | squash, > < eyes, sparkles, big ripple, hop | press = 1, fades 2.6/s (> < while > 0.4); squash velocity +7 (spring k 200, damping 8; ×(1 + 0.9sq) wide, ×(1 − 0.75sq) tall about the hem); hop +150 px/s; 26 sparkles at the cursor; ring 0.55U → 1.45U over 1.1 s |
+| Click elsewhere | pointer down off the body | small ripple there, flinch, look | ring 0.06U → 0.56U over 1.1 s; surprise ≥ 0.45 (fades 1.3/s: brief dot eyes and a wider RGB split) |
+| Startle | smoothed cursor speed > 1700 × U/340 px/s, not hovering, surprise < 0.6 | dot eyes, hop, glitch | surprise = 1; hop +200 px/s; 6 sparkles just above the centre; body alpha flickers 1 − 0.45·s·(0.5 + 0.5 sin 40t); RGB split = U·(0.018 + 0.05·s + 0.02·press) |
+| Sleep | cursor present, not hovering, no move for > 5 s | eyes → sleepy, bob and hem slow to 40%, "z" | sleep rate 1.2 in (6 out); sleepy eyes once sleep > 0.5; a "z" with probability 0.7·dt per frame while sleep > 0.8 |
+| "z" | while asleep | rises from the top right | from (x + 0.32U, y − 0.4U): up 0.35U, right 0.12U, wobble ±0.04U, size 0.07U → 0.12U, alpha sin(π·u)·0.8 over 2.4 s |
+| Wake | the first move (or touch) while sleep > 0.5 | dot eyes, one hop | surprise ≥ 0.7; hop +240 px/s, **once per nap** |
+| Hops | any hop | up and back down | gravity 1300 × U/340 px/s²; landing faster than 150 px/s adds squash min(6, 0.012·v); the floor glow fades with height |
+| Blink | every 2.2–4.8 s (first at 2 s), only with plain eyes | eyes close and open | 0.16 s triangle; skipped while happy > 0.3, press > 0.1, surprise > 0.2 or sleep > 0.3 |
+| Eye morph | any expression change | each eye's 72-point outline | each weight springs to its target: stiffness happy 170, press 420, surprise 220, sleep 60, blink 900, damping 0.92 × critical; blend priority press > happy > surprise > sleep > blink > open |
+| Sparkles | click, startle | stars and dots fly out | speed (160–580)·U/340 px/s, −60 px/s upward kick, drag e^(−2.8t), gravity 40 px/s²; life 0.6–1.2 s; size (2–7)·U/340; 55% four-point stars that spin; colours cycle cyan, lilac, pink, white; alpha (1 − u)^1.4; additive with a 10 px glow |
+| Dust | always | 26 motes | drift up 8·s px/s, sway ±6 px, twinkle 0.25–1 × 0.65 alpha; additive |
+| Scanlines | always | thin bands drift down inside the body | step max(3, 0.012U), band 35% of the step, 7% alpha, 0.04U px/s |
+
+**Touch (phones and tablets).** The finger is the cursor: a touch moves the cursor to the finger at once (no flick,
+so a tap never startles it), a finger resting or sliding on the body is the hover (happy arches only while it's down),
+a tap on the body is the click (hit-tested at the tap point itself), a tap elsewhere the flinch, a drag leads the eyes
+and a quick swipe startles it. Lifting the finger leaves the cursor where it was: the ghost keeps looking there and
+falls asleep after 5 s; the next touch wakes it with the same single hop. A touch's own `pointerleave` is ignored (only
+a mouse leaving the window means "no cursor").
+
+**Wake-up hop.** In the original concept every `pointermove` while asleep added another +240 px/s, so a normal wake
+(several move events) launched the ghost off the top of the screen. Here the hop fires once per nap (`G.woke`).
+
+**Reduced motion** (`prefers-reduced-motion: reduce`, read at start and on change): the startle doesn't flicker; the
+body sits at its average alpha (1 − 0.225·surprise) instead. Everything else stays, since the piece is a direct
+response to your own input.
+
+### The engine, file by file
+Copy these exactly.
+
+`src/ghost/math.ts`
+```ts
+export type Pt = [number, number];
+
+export const TAU = Math.PI * 2;
+export const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
+export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+/** Smoothstep from a to b. */
+export const sstep = (a: number, b: number, x: number) => {
+  const t = clamp((x - a) / (b - a), 0, 1);
+  return t * t * (3 - 2 * t);
+};
+/** "r,g,b" + alpha → a canvas colour string. */
+export const rgba = (rgb: string, a: number) => `rgba(${rgb},${a})`;
+```
+
+`src/ghost/config.ts`
+```ts
+// Every colour and behaviour number of the ghost. Sizes scale with U, 40% of the window's shorter side; numbers
+// marked "at U 340" are multiplied by U / 340. Shape geometry lives in outline.ts (body) and eyes.ts (eyes).
+
+/** Colours as "r,g,b" (alpha is added where they're drawn) or hex. */
+export const COLORS = {
+  page: "#06060c", // background, also --page in tokens.css
+  backGlow: "58,36,140", // big violet glow centred on the ghost
+  backGlowMid: "26,18,64",
+  backGlowEdge: "6,6,12",
+  pattern: "160,150,255", // interlocking circles, drawn at 3.5% (5.5% on hover)
+  dust: "150,170,255",
+  shadow: "120,90,255", // floor glow under the ghost
+  ripple: "170,190,255",
+  auraCyan: "40,190,255", // blurred chromatic aura behind the body
+  auraMagenta: "230,60,220",
+  auraViolet: "110,70,255",
+  edgeCyan: "60,200,255", // RGB-split edge lines
+  edgeMagenta: "255,70,210",
+  bodyTop: "#3a2c86", // body fill, diagonal top-left → bottom-right
+  bodyMid: "#1d1446",
+  bodyBottom: "#3a1650",
+  innerMagenta: "220,60,190", // light pools inside the body
+  innerBlue: "90,110,255",
+  innerTeal: "60,220,230",
+  core: "10,6,24", // dark centre that makes it read as glass
+  scanline: "#cfc8ff",
+  rimTop: "170,190,255", // soft glow inside the edge
+  rimMid: "150,100,255",
+  rimBottom: "255,110,220",
+  ringTop: "235,235,255", // inset outline
+  ringMid: "200,190,255",
+  ringBottom: "255,170,240",
+  ringShadow: "180,170,255",
+  hairline: "220,220,255",
+  specular: "255,255,255",
+  eye: "#f4f4ff",
+  eyeGlow: "210,215,255",
+  sparks: ["150,230,255", "200,170,255", "255,140,230", "255,255,255"],
+  z: "200,200,255",
+} as const;
+
+/** Behaviour. Times in seconds. */
+export const BEHAVIOUR = {
+  sleepAfter: 5, // still cursor → asleep
+  startleSpeed: 1700, // cursor speed that startles it, px/s at U 340
+  wakeHop: 240, // upward kick when it wakes, px/s
+  clickHop: 150, // … when it's clicked
+  startleHop: 200, // … when it's startled
+  gravity: 1300, // px/s² at U 340
+  firstBlink: 2,
+  blinkGap: [2.2, 2.6], // next blink after 2.2 + random × 2.6 s
+  blinkLength: 0.16,
+  clickSparks: 26,
+  startleSparks: 6,
+  rippleLife: 1.1,
+  zLife: 2.4,
+  zRate: 0.7, // "z"s per second while asleep
+  dustCount: 26,
+} as const;
+```
+
+`src/ghost/state.ts`
+```ts
+import { BEHAVIOUR } from "./config";
+import { TAU } from "./math";
+import type { EyeWeights } from "./eyes";
+
+export type View = { W: number; H: number; DPR: number; U: number; CX: number; CY: number };
+
+/** The cursor (or the last touch point). */
+export type Pointer = {
+  x: number;
+  y: number;
+  px: number; // last frame's position, for the speed
+  py: number;
+  present: boolean; // false before the first move and after the cursor leaves the window
+  down: boolean;
+  touch: boolean; // the last pointer was a finger: it only "hovers" while it's down
+  lastMove: number; // performance.now() of the last move
+  spd: number; // smoothed speed, px/s
+};
+
+export type Ghost = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  gx: number; // gaze, −1…1
+  gy: number;
+  gvx: number;
+  gvy: number;
+  lean: number; // radians
+  lv: number;
+  sq: number; // jelly squash
+  sqv: number;
+  happy: number;
+  surp: number;
+  press: number;
+  sleep: number;
+  woke: boolean; // the wake-up hop has fired for this nap
+  blink: number;
+  blinkT: number;
+  nextBlink: number;
+  phase: number; // hem wave
+  glow: number;
+  lift: number; // hop height, px
+  liftv: number;
+  trailX: number;
+  trailY: number;
+  hover: boolean;
+};
+
+export type Particle = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  t: number;
+  life: number;
+  s: number;
+  c: string;
+  rot: number;
+  vr: number;
+  star: boolean;
+};
+export type Ripple = { x: number; y: number; t: number; big: boolean };
+export type Snore = { x: number; y: number; t: number };
+export type Dust = { x: number; y: number; r: number; s: number; p: number };
+
+export type World = {
+  ctx: CanvasRenderingContext2D;
+  view: View;
+  pattern: HTMLCanvasElement | null;
+  pointer: Pointer;
+  ghost: Ghost;
+  parts: Particle[];
+  rips: Ripple[];
+  zz: Snore[];
+  dust: Dust[];
+  eyeW: EyeWeights; // eye-shape weights
+  eyeV: EyeWeights; // … and their spring velocities
+  t: number;
+  path: Path2D | null; // the body outline in canvas pixels, for hit tests
+  reducedMotion: boolean;
+};
+
+const weights = (): EyeWeights => ({ happy: 0, press: 0, surprise: 0, sleep: 0, closed: 0 });
+
+export function createWorld(ctx: CanvasRenderingContext2D, view: View): World {
+  const { W, H, CX, CY } = view;
+  return {
+    ctx,
+    view,
+    pattern: null,
+    pointer: { x: W * 0.75, y: H * 0.8, px: 0, py: 0, present: false, down: false, touch: false, lastMove: 0, spd: 0 },
+    ghost: {
+      x: CX, y: CY, vx: 0, vy: 0, gx: 0, gy: 0, gvx: 0, gvy: 0, lean: 0, lv: 0, sq: 0, sqv: 0,
+      happy: 0, surp: 0, press: 0, sleep: 0, woke: false, blink: 0, blinkT: -1, nextBlink: BEHAVIOUR.firstBlink,
+      phase: 0, glow: 0, lift: 0, liftv: 0, trailX: 0, trailY: 0, hover: false,
+    },
+    parts: [],
+    rips: [],
+    zz: [],
+    dust: [...Array(BEHAVIOUR.dustCount)].map(() => ({
+      x: Math.random(),
+      y: Math.random(),
+      r: 0.5 + Math.random() * 1.6,
+      s: 0.2 + Math.random() * 0.8,
+      p: Math.random() * TAU,
+    })),
+    eyeW: weights(),
+    eyeV: weights(),
+    t: 0,
+    path: null,
+    reducedMotion: false,
+  };
+}
+```
+
+`src/ghost/outline.ts`
+```ts
+import { lerp, sstep, type Pt } from "./math";
+import type { Ghost } from "./state";
+
+/**
+ * The body outline in local units (height ≈ 1, origin at the centre, y down): a half-circle dome, slightly bulging
+ * sides and a wavy hem, 136 points. The hem trails behind the ghost's velocity, the lower body sways, and the jelly
+ * squash widens and flattens it around the hem line.
+ */
+export function outline(G: Ghost, t: number): Pt[] {
+  const w = 0.43, top = -0.48, sideY = -0.07, hem = 0.42, pts: Pt[] = [];
+  // four scallops: rounded lobes (s^0.7) with shallow notches between them (−0.35·s^1.6), travelling with G.phase
+  const hemWave = (u: number) => {
+    const k = 4;
+    const s = Math.sin(u * Math.PI * k + G.phase);
+    return 0.065 * (s > 0 ? Math.pow(s, 0.7) : -M
