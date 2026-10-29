@@ -16,6 +16,7 @@ import { MainframeExperiment } from './components/ui/mainframe-experiment'
 import { CharacterHeroExperiment } from './components/ui/character-hero'
 import { VexorExperiment } from './components/ui/vexor-experiment'
 import { DoodleChaseExperiment } from './components/ui/doodle-chase-experiment'
+import { MoorlineExperiment } from './components/ui/moorline-experiment'
 
 const glyphs = ['✳', '⌘', '⟡', '⌬', '⧖', '◈', '⎔', '⌁', '✺', '⟢', '⊹', '⏣']
 
@@ -26,6 +27,7 @@ function IntroPage({
   onEnterCharacter,
   onEnterVexor,
   onEnterDoodle,
+  onEnterMoorline,
 }: {
   onEnter: () => void
   onEnterCursor: () => void
@@ -33,6 +35,7 @@ function IntroPage({
   onEnterCharacter: () => void
   onEnterVexor: () => void
   onEnterDoodle: () => void
+  onEnterMoorline: () => void
 }) {
   return (
     <main className="intro-shell">
@@ -186,8 +189,15 @@ function IntroPage({
           <span className="panel-arrow"><ArrowRight size={21} strokeWidth={1.7} /></span><span className="panel-edge" />
         </button>
 
+        {/* Experiment 007: Moorline */}
+        <button className="project-panel experiment-seven-panel" type="button" onClick={onEnterMoorline} aria-label="Open Moorline particle experience">
+          <span className="panel-symbol experiment-seven-symbol"><span aria-hidden="true" style={{ fontSize: 25, lineHeight: 1 }}>✧</span></span>
+          <span className="panel-copy"><span className="panel-overline" style={{ color: '#62baff' }}>EXPERIMENT 007</span><span className="panel-title">Moorline</span><span className="panel-description">A living particle tree, reactive light & rippling reflections.</span></span>
+          <span className="panel-arrow"><ArrowRight size={21} strokeWidth={1.7} /></span><span className="panel-edge" />
+        </button>
+
         <div className="intro-bottom-note">
-          <span className="note-pulse" /> SELECT A PROJECT <span className="note-divider" /> SIX EXPERIMENTS AVAILABLE
+          <span className="note-pulse" /> SELECT A PROJECT <span className="note-divider" /> SEVEN EXPERIMENTS AVAILABLE
         </div>
       </section>
 
@@ -314,12 +324,15 @@ export default function App() {
   const [showCharacter, setShowCharacter] = useState(false)
   const [showVexor, setShowVexor] = useState(false)
   const [showDoodle, setShowDoodle] = useState(false)
+  const [showMoorline, setShowMoorline] = useState(false)
 
   // Support direct deep linking via URL hash
   useState(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase()
-      if (hash === '#doodle' || hash === '#experiment-6' || hash === '#006') {
+      if (hash === '#moorline' || hash === '#experiment-7' || hash === '#007') {
+        setShowMoorline(true)
+      } else if (hash === '#doodle' || hash === '#experiment-6' || hash === '#006') {
         setShowDoodle(true)
       } else if (hash === '#vexor' || hash === '#experiment-5' || hash === '#005') {
         setShowVexor(true)
@@ -337,6 +350,7 @@ export default function App() {
 
   const resetAll = () => {
     setShowDoodle(false)
+    setShowMoorline(false)
     setShowVexor(false)
     setShowCharacter(false)
     setShowMainframe(false)
@@ -347,6 +361,7 @@ export default function App() {
     }
   }
 
+  if (showMoorline) return <MoorlineExperiment onBack={resetAll} />
   if (showDoodle) return <DoodleChaseExperiment onBack={resetAll} />
   if (showVexor) return <VexorExperiment onBack={resetAll} />
   if (showCharacter) return <CharacterHeroExperiment onBack={resetAll} />
@@ -360,6 +375,10 @@ export default function App() {
       onEnterCursor={() => setShowCursorExperiment(true)}
       onEnterMainframe={() => setShowMainframe(true)}
       onEnterCharacter={() => setShowCharacter(true)}
+      onEnterMoorline={() => {
+        window.location.hash = 'moorline'
+        setShowMoorline(true)
+      }}
       onEnterDoodle={() => {
         window.location.hash = 'doodle'
         setShowDoodle(true)
